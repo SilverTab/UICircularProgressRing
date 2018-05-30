@@ -41,7 +41,7 @@ private extension CGFloat {
  */
 private extension UILabel {
     func update(withValue value: CGFloat, valueIndicator: String, rightToLeft: Bool,
-                showsDecimal: Bool, decimalPlaces: Int, valueDelegate: UICircularProgressRingView?) {
+                showsDecimal: Bool, decimalPlaces: Int, valueDelegate: UICircularProgressRingView?, upperBound: CGFloat? = nil) {
         if rightToLeft {
             if showsDecimal {
                 self.text = "\(valueIndicator)" + String(format: "%.\(decimalPlaces)f", value)
@@ -54,6 +54,10 @@ private extension UILabel {
                 self.text = String(format: "%.\(decimalPlaces)f", value) + "\(valueIndicator)"
             } else {
                 self.text = "\(Int(value))\(valueIndicator)"
+            }
+            if let upper = upperBound,
+                let txt = self.text {
+                self.text = txt + "/\(upper)"
             }
         }
         valueDelegate?.willDisplayLabel(label: self)
@@ -109,6 +113,7 @@ class UICircularProgressRingLayer: CAShapeLayer {
     @NSManaged var valueIndicator: String
     @NSManaged var rightToLeft: Bool
     @NSManaged var showFloatingPoint: Bool
+    @NSManaged var showUpperBound: Bool
     @NSManaged var decimalPlaces: Int
     
     var animationDuration: TimeInterval = 1.0
@@ -343,13 +348,13 @@ class UICircularProgressRingLayer: CAShapeLayer {
         valueLabel.font = self.font
         valueLabel.textAlignment = .center
         valueLabel.textColor = fontColor
-
+        let upper = showUpperBound ? maxValue : nil
         valueLabel.update(withValue: value,
                           valueIndicator: valueIndicator,
                           rightToLeft: rightToLeft,
                           showsDecimal: showFloatingPoint,
                           decimalPlaces: decimalPlaces,
-                          valueDelegate: valueDelegate)
+                          valueDelegate: valueDelegate, upperBound: upper)
         
         // Deterime what should be the center for the label
         valueLabel.center = CGPoint(x: bounds.midX, y: bounds.midY)
